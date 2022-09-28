@@ -30,7 +30,7 @@ public class ModTests
     }
 
     [Fact]
-    public void RandomNumbers()
+    public void RandomNumbers10Run()
     {
         for (int i = 0; i < 10; i++)
         {

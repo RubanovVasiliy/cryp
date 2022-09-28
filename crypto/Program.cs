@@ -1,16 +1,17 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Numerics;
 using crypto;
 
-// CryptoLib.Diffie();
+CryptoLib.DiffieHellman();
 
-var y = 47;
-var a =88;
-var p = 107;
+var n = 1000000000;
+var p = CryptoLib.GenerateSimpleNumber(n);
+var y = CryptoLib.GenerateSimpleNumber(Convert.ToInt32(p - 1));
+var a = CryptoLib.GenerateSimpleNumber(Convert.ToInt32(p - 1));
 
-//Console.WriteLine("\n{0}^x % {1} = {2}", a, p, y);
 var res = CryptoLib.Shanks(a, p, y);
 foreach (var i in res)
 {
-    Console.WriteLine("\nx = {2} {0} == {1}", y, CryptoLib.Mod(a, i, p), i);
+    Console.WriteLine("x = {2} {0} == {1}", y, CryptoLib.Mod(a, i, p), i);
 }

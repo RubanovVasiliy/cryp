@@ -6,11 +6,11 @@ namespace test;
 public class DiffieHellman
 {
     [Fact]
-    public void RandomRun()
+    public void Random10Run()
     {
-        for (var i = 0; i < 1000; i++)
+        for (var i = 0; i < 10; i++)
         {
-            Assert.True(CryptoLib.Diffie());
+            Assert.True(CryptoLib.DiffieHellman());
         }
     }
 }

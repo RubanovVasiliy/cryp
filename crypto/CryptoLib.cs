@@ -17,7 +17,7 @@ namespace crypto
 
             for (var i = 0; i <= t; i++)
             {
-                if (Convert.ToBoolean(num & 1)) 
+                if (Convert.ToBoolean(num & 1))
                     result = (result * temp * sub) % p;
                 temp = (temp * temp * sub) % p;
                 num = num >> 1;
@@ -25,7 +25,7 @@ namespace crypto
 
             return result;
         }
-        
+
         public static List<Int64> Gcd(Int64 a, Int64 b)
         {
             if (a < b) throw new Exception("In GCD must be a >= b");
@@ -51,9 +51,8 @@ namespace crypto
         public static List<long> Shanks(long a, long p, long y)
         {
             if (p == 0) throw new Exception("P can not be 0");
-            var k = Convert.ToInt64(Math.Sqrt(p) + 1);
-            var map = new Dictionary<long, int>();
-            var map1 = new Dictionary<long, int>();
+            var k = Convert.ToInt64(Math.Sqrt(p));
+            var map = new Dictionary<long, long>();
             var keysX = new List<long>();
 
             for (var i = 0; i < k; i++)
@@ -65,36 +64,18 @@ namespace crypto
             for (var i = 1; i <= k; i++)
             {
                 var temp = Mod(a, k * i, p);
-                map1.TryAdd(temp, i);
-
+                
                 if (map.TryGetValue(temp, out var item))
                 {
-                    var result = item * k - i;
-                    //Console.WriteLine("{0} * {1} - {2} = {3}", item, k, i, result);
-                    var r = Mod(a, result, p);
-
-                    if (r == y)
-                    {
-                        keysX.Add(result);
-                    }
+                    var result = i * k - item;
+                    keysX.Add(result);
                 }
-            }
-            
-            foreach (var i in map)
-            {
-                Console.WriteLine(i.Key);
-            }
-            Console.WriteLine();
-            
-            foreach (var i in map1)
-            {
-                Console.WriteLine(i.Key);
             }
 
             return keysX;
         }
 
-        private static bool IsSimple(Int64 n)
+        public static bool IsSimple(Int64 n)
         {
             if (n <= 1) return false;
 
@@ -113,7 +94,7 @@ namespace crypto
             var list = new List<long>();
             for (var t = 0; t <= n; t++)
                 list.Add(t);
-            
+
             list[1] = 0;
             var i = 2;
             while (i <= n)
@@ -127,6 +108,7 @@ namespace crypto
                         j = j + i;
                     }
                 }
+
                 i += 1;
             }
 
@@ -135,22 +117,23 @@ namespace crypto
             return set.ToList();
         }
 
-        private static int GenerateSimpleNumber(int n)
+        public static long GenerateSimpleNumber(int n, bool strong = false)
         {
-            int rnd;
+            long rnd;
             do
             {
                 rnd = new Random().Next(n);
-            } while (IsSimple((rnd - 1) / 2));
+            } while (!IsSimple(rnd) || !(!strong || IsSimple((rnd - 1) / 2)));
+
             return rnd;
         }
 
-        public static bool Diffie()
+        public static bool DiffieHellman()
         {
             const int n = 1000000000;
-            var p = GenerateSimpleNumber(n);
+            var p = GenerateSimpleNumber(n, true);
             var q = (p - 1) / 2;
-            int g;
+            long g;
             do
             {
                 g = GenerateSimpleNumber(n);
