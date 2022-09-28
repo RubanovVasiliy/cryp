@@ -4,7 +4,6 @@ namespace crypto
 {
     public class CryptoLib
     {
-
         public static Int64 Mod(Int64 a, Int64 x, Int64 p, Int64 sub = 1)
         {
             if (x == 0) return 1;
@@ -48,40 +47,51 @@ namespace crypto
 
             return u;
         }
-        
-        public static Int64 Shanks(Int64 a, Int64 p, Int64 y)
+
+        public static List<long> Shanks(long a, long p, long y)
         {
             if (p == 0) throw new Exception("P can not be 0");
             var k = Convert.ToInt64(Math.Sqrt(p) + 1);
-            var map = new Dictionary<Int64, Int32>();
-            var map1 = new Dictionary<Int64, Int32>();
+            var map = new Dictionary<long, int>();
+            var map1 = new Dictionary<long, int>();
+            var keysX = new List<long>();
 
-            try
+            for (var i = 0; i < k; i++)
             {
-                for (var i = 0; i < k; i++)
-                {
-                    var temp = Mod(a, i, p) * y % p;
-                    map.TryAdd(temp, i);
-                }
+                var temp = Mod(a, i, p) * y % p;
+                map.TryAdd(temp, i);
+            }
 
-                for (var i = 1; i <= k; i++)
-                {
-                    var temp = Mod(a, k * i, p);
-                    map1.TryAdd(temp, i);
+            for (var i = 1; i <= k; i++)
+            {
+                var temp = Mod(a, k * i, p);
+                map1.TryAdd(temp, i);
 
-                    if (map.TryGetValue(temp, out var res))
+                if (map.TryGetValue(temp, out var item))
+                {
+                    var result = item * k - i;
+                    //Console.WriteLine("{0} * {1} - {2} = {3}", item, k, i, result);
+                    var r = Mod(a, result, p);
+
+                    if (r == y)
                     {
-                        Console.WriteLine("{0} * {1} - {2}", res, k, i);
-                        return res * k - i;
+                        keysX.Add(result);
                     }
                 }
             }
-            catch (Exception e)
+            
+            foreach (var i in map)
             {
-                Console.WriteLine(e);
+                Console.WriteLine(i.Key);
+            }
+            Console.WriteLine();
+            
+            foreach (var i in map1)
+            {
+                Console.WriteLine(i.Key);
             }
 
-            throw new Exception("Not found");
+            return keysX;
         }
 
         private static bool IsSimple(Int64 n)
@@ -125,7 +135,7 @@ namespace crypto
             return set.ToList();
         }
 
-        public static int GenerateSimpleNumber(int n)
+        private static int GenerateSimpleNumber(int n)
         {
             int rnd;
             do
@@ -160,25 +170,6 @@ namespace crypto
             Console.WriteLine("Ya = {0}\nYb = {1}", Ya, Yb);
             Console.WriteLine("Zab = {0}\nZab = {1}", Zab, Zba);
             return Zab == Zba;
-        }
-
-        public class DiffieHellman
-        {
-            private const Int64 P = 22222547;
-            private const Int64 G = 19;
-            private readonly Int64 _x;
-            public Int64 Y { get; }
-
-            public DiffieHellman(Int64 x)
-            {
-                _x = x;
-                Y = Mod(G, _x, P);
-            }
-
-            public Int64 GenerateKey(Int64 y)
-            {
-                return Mod(y, _x, P);
-            }
         }
     }
 }

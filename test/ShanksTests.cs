@@ -13,7 +13,10 @@ public class ShanksTests
         var p = 23;
 
         var res = CryptoLib.Shanks(a, p, y);
-        var actual = CryptoLib.Mod(2,res,23);
-        Assert.Equal(y, actual);
+        foreach (var i in res)
+        {
+            var actual = CryptoLib.Mod(2,i,23);
+            Assert.Equal(y, actual);
+        }
     }
 }
