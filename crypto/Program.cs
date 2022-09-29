@@ -3,7 +3,7 @@
 using System.Numerics;
 using crypto;
 
-CryptoLib.DiffieHellman();
+//CryptoLib.DiffieHellman();
 
 var n = 1000000000;
 var p = CryptoLib.GenerateSimpleNumber(n);

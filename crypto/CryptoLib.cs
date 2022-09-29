@@ -4,7 +4,7 @@ namespace crypto
 {
     public class CryptoLib
     {
-        public static Int64 Mod(Int64 a, Int64 x, Int64 p, Int64 sub = 1)
+        public static Int64 Mod(Int64 a, Int64 x, Int64 p)
         {
             if (x == 0) return 1;
             if (p <= 0) throw new Exception("P can not be <= 0");
@@ -18,8 +18,8 @@ namespace crypto
             for (var i = 0; i <= t; i++)
             {
                 if (Convert.ToBoolean(num & 1))
-                    result = (result * temp * sub) % p;
-                temp = (temp * temp * sub) % p;
+                    result = (result * temp ) % p;
+                temp = (temp * temp) % p;
                 num = num >> 1;
             }
 
@@ -52,13 +52,23 @@ namespace crypto
         {
             if (p == 0) throw new Exception("P can not be 0");
             var k = Convert.ToInt64(Math.Sqrt(p));
-            var map = new Dictionary<long, long>();
+            var map = new Dictionary<long, List<long>>();
             var keysX = new List<long>();
 
             for (var i = 0; i < k; i++)
             {
-                var temp = Mod(a, i, p) * y % p;
-                map.TryAdd(temp, i);
+                var temp = (Mod(a, i, p) * y % p) % p;
+                if (map.ContainsKey(temp))
+                {
+                    map.TryGetValue(temp, out var item);
+                    item!.Add(i);
+                    map.Remove(temp);
+                    map.TryAdd(temp, item);
+                }
+                else
+                {
+                    map.TryAdd(temp, new List<long>(){i});
+                }
             }
 
             for (var i = 1; i <= k; i++)
@@ -67,8 +77,11 @@ namespace crypto
                 
                 if (map.TryGetValue(temp, out var item))
                 {
-                    var result = i * k - item;
-                    keysX.Add(result);
+                    foreach (var it in item)
+                    {
+                        var result = i * k - it;
+                        keysX.Add(result); 
+                    }
                 }
             }
 
