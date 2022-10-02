@@ -18,7 +18,7 @@ namespace crypto
             for (var i = 0; i <= t; i++)
             {
                 if (Convert.ToBoolean(num & 1))
-                    result = (result * temp ) % p;
+                    result = (result * temp) % p;
                 temp = (temp * temp) % p;
                 num = num >> 1;
             }
@@ -67,20 +67,20 @@ namespace crypto
                 }
                 else
                 {
-                    map.TryAdd(temp, new List<long>(){i});
+                    map.TryAdd(temp, new List<long>() { i });
                 }
             }
 
             for (var i = 1; i <= k; i++)
             {
                 var temp = Mod(a, k * i, p);
-                
+
                 if (map.TryGetValue(temp, out var item))
                 {
                     foreach (var it in item)
                     {
                         var result = i * k - it;
-                        keysX.Add(result); 
+                        keysX.Add(result);
                     }
                 }
             }
@@ -130,9 +130,9 @@ namespace crypto
             return set.ToList();
         }
 
-        public static long GenerateSimpleNumber(int n, bool strong = false)
+        public static int GenerateSimpleNumber(int n, bool strong = false)
         {
-            long rnd;
+            int rnd;
             do
             {
                 rnd = new Random().Next(n);
@@ -166,6 +166,44 @@ namespace crypto
             Console.WriteLine("Ya = {0}\nYb = {1}", Ya, Yb);
             Console.WriteLine("Zab = {0}\nZab = {1}", Zab, Zba);
             return Zab == Zba;
+        }
+
+        private static List<long> GenerateShamirKeys(int p)
+        {
+            var rnd = new Random();
+            int c;
+            List<long> gcd;
+            do
+            {
+                c = rnd.Next(p - 1);
+                gcd = Gcd(p - 1, c);
+            } while (!IsSimple(c) && gcd[0] != 1);
+
+            var d = gcd[2];
+            if (d < 0)
+            {
+                d += p - 1;
+            }
+
+            return new List<long>() { c, d };
+        }
+
+        public static bool Shamir(long m)
+        {
+            var n = 1000000000;
+            var p = GenerateSimpleNumber(n);
+            var aShamirKeys = GenerateShamirKeys(p);
+            var bShamirKeys = GenerateShamirKeys(p);
+
+
+            var x1 = Mod(m, aShamirKeys[0], p);
+            var x2 = Mod(x1, bShamirKeys[0], p);
+            var x3 = Mod(x2, aShamirKeys[1], p);
+            var x4 = Mod(x3, bShamirKeys[1], p);
+
+            Console.WriteLine("{0} {1}", m, x4);
+            
+            return m == x4;
         }
     }
 }
