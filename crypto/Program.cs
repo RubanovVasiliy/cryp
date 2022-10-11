@@ -19,4 +19,4 @@ using crypto;
 //CryptoLib.Shamir(83862086);
     //CryptoLib.ElGamal(10);
 
-Console.WriteLine(CryptoLib.RSA(6));
+Console.WriteLine(Encryption.RSA(6));

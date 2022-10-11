@@ -2,16 +2,16 @@
 	<s:Boolean x:Key="/Default/Environment/Highlighting/HighlightingEnabled/@EntryValue">False</s:Boolean>
 	<s:String x:Key="/Default/Environment/Highlighting/HighlightingMode/@EntryValue">OnlyFullLine</s:String>
 	
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=46c2189d_002D76c2_002D465e_002Dbf26_002D01e5f1b29642/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Session" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;And&gt;
-    &lt;TestAncestor&gt;
-      &lt;TestId&gt;xUnit::73E00BB9-737B-4CA9-8D31-A3FBE9D1AEEB::net6.0::test.ShanksTests&lt;/TestId&gt;
-    &lt;/TestAncestor&gt;
-    &lt;Project Location="/Users/macos/RiderProjects/crypto/test" Presentation="&amp;lt;test&amp;gt;" /&gt;
-    &lt;Namespace&gt;test&lt;/Namespace&gt;
-  &lt;/And&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=46c2189d_002D76c2_002D465e_002Dbf26_002D01e5f1b29642/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Session" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;And&gt;&#xD;
+    &lt;TestAncestor&gt;&#xD;
+      &lt;TestId&gt;xUnit::73E00BB9-737B-4CA9-8D31-A3FBE9D1AEEB::net6.0::test.ShanksTests&lt;/TestId&gt;&#xD;
+    &lt;/TestAncestor&gt;&#xD;
+    &lt;Project Location="\Users\macos\RiderProjects\crypto\test" Presentation="&amp;lt;test&amp;gt;" /&gt;&#xD;
+    &lt;Namespace&gt;test&lt;/Namespace&gt;&#xD;
+  &lt;/And&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=66331a28_002D435b_002D408f_002D96e2_002D06b55c9733e9/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from Solution" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;Solution /&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=66331a28_002D435b_002D408f_002D96e2_002D06b55c9733e9/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from Solution" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Solution /&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
