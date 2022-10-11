@@ -1,10 +1,12 @@
 using System;
+using System.Numerics;
 
 namespace crypto
 {
     public class CryptoLib
     {
-        public static Int64 Mod(Int64 a, Int64 x, Int64 p)
+        private const int N = 1000000000;
+        public static long Mod(long a, long x, long p)
         {
             if (x == 0) return 1;
             if (p <= 0) throw new Exception("P can not be <= 0");
@@ -26,13 +28,13 @@ namespace crypto
             return result;
         }
 
-        public static List<Int64> Gcd(Int64 a, Int64 b)
+        public static List<long> Gcd(long a, long b)
         {
             if (a < b) throw new Exception("In GCD must be a >= b");
 
-            var u = new List<Int64> { a, 1, 0 };
-            var v = new List<Int64> { b, 0, 1 };
-            var t = new List<Int64> { 0, 0, 0 };
+            var u = new List<long> { a, 1, 0 };
+            var v = new List<long> { b, 0, 1 };
+            var t = new List<long> { 0, 0, 0 };
 
             while (v[0] != 0)
             {
@@ -88,7 +90,7 @@ namespace crypto
             return keysX;
         }
 
-        public static bool IsSimple(Int64 n)
+        public static bool IsSimple(long n)
         {
             if (n <= 1) return false;
 
@@ -102,7 +104,7 @@ namespace crypto
             return true;
         }
 
-        public static List<Int64> EratosthenesSieve(Int64 n)
+        public static List<long> EratosthenesSieve(long n)
         {
             var list = new List<long>();
             for (var t = 0; t <= n; t++)
@@ -143,17 +145,16 @@ namespace crypto
 
         public static bool DiffieHellman()
         {
-            const int n = 1000000000;
-            var p = GenerateSimpleNumber(n, true);
+            var p = GenerateSimpleNumber(N, true);
             var q = (p - 1) / 2;
             long g;
             do
             {
-                g = GenerateSimpleNumber(n);
+                g = GenerateSimpleNumber(N);
             } while (p - 1 > g && Mod(g, q, p) != 1);
 
-            var Xa = GenerateSimpleNumber(n);
-            var Xb = GenerateSimpleNumber(n);
+            var Xa = GenerateSimpleNumber(N);
+            var Xb = GenerateSimpleNumber(N);
 
             var Ya = Mod(g, Xa, p);
             var Yb = Mod(g, Xb, p);
@@ -190,8 +191,7 @@ namespace crypto
 
         public static bool Shamir(long m)
         {
-            var n = 1000000000;
-            var p = GenerateSimpleNumber(n);
+            var p = GenerateSimpleNumber(N);
             var aShamirKeys = GenerateShamirKeys(p);
             var bShamirKeys = GenerateShamirKeys(p);
 
@@ -205,5 +205,66 @@ namespace crypto
             
             return m == x4;
         }
+
+        public static bool ElGamal(long m)
+        {
+            var n = 100;
+            var p = GenerateSimpleNumber(n, true);
+            var q = (p - 1) / 2;
+            long g;
+            do
+            {
+                g = GenerateSimpleNumber(p - 1);
+            } while (Mod(g, q, p) != 1);
+
+            var ca = GenerateSimpleNumber(p - 1);
+            var da = Mod(g, ca, p);
+            var k = GenerateSimpleNumber(p - 1);
+            var r = Mod(g, k, p);
+            var e = m * Mod(da, k, p) % p;
+
+            var cb = GenerateSimpleNumber(p - 1);
+            var db = Mod(g, ca, p);
+
+            var m1 = e * Mod(r, p - 1 - cb, p) % p;
+
+            Console.WriteLine("{0} {1}", m, m1);
+
+            return m == m1;
+        }
+
+        public static bool RSA(long m)
+        {
+            var aRsaKeys = GenerateRSAKeys();
+            var bRsaKeys = GenerateRSAKeys();
+
+            var e = Mod(m, bRsaKeys[1], bRsaKeys[2]);
+            var m1 = Mod(e, bRsaKeys[0], bRsaKeys[2]);
+            
+            return e == m1;
+        }
+
+        private static List<long> GenerateRSAKeys()
+        {
+            long p = GenerateSimpleNumber(N);
+            long q = GenerateSimpleNumber(N);
+            var n = p * q;
+            var fi = (p - 1) * (q - 1);
+            long d;
+            List<long> gcd;
+            do
+            {
+                d = new Random().NextInt64(N);
+                gcd = Gcd(fi, d);
+            } while (gcd[0] != 1);
+
+            var c = gcd[2];
+
+            BigInteger res = c * d % fi;
+            Console.WriteLine("{0} {1}",res, c* d %fi);
+
+            return new List<long>() { c, n, d };
+        }
+
     }
 }
