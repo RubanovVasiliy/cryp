@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace crypto;
+﻿namespace crypto;
 
 public class Encryption
 {
@@ -33,10 +31,10 @@ public class Encryption
         var bShamirKeys = GenerateShamirKeys(p);
 
 
-        var x1 = CryptoLib.Mod(m, aShamirKeys[0], p);
-        var x2 = CryptoLib.Mod(x1, bShamirKeys[0], p);
-        var x3 = CryptoLib.Mod(x2, aShamirKeys[1], p);
-        var x4 = CryptoLib.Mod(x3, bShamirKeys[1], p);
+        var x1 = CryptoLib.ModPow(m, aShamirKeys[0], p);
+        var x2 = CryptoLib.ModPow(x1, bShamirKeys[0], p);
+        var x3 = CryptoLib.ModPow(x2, aShamirKeys[1], p);
+        var x4 = CryptoLib.ModPow(x3, bShamirKeys[1], p);
 
         Console.WriteLine("{0} {1}", m, x4);
 
@@ -52,20 +50,20 @@ public class Encryption
         do
         {
             g = CryptoLib.GenerateSimpleNumber(p - 1);
-        } while (CryptoLib.Mod(g, q, p) != 1);
+        } while (CryptoLib.ModPow(g, q, p) != 1);
 
         var ca = CryptoLib.GenerateSimpleNumber(p - 1);
-        var da = CryptoLib.Mod(g, ca, p);
+        var da = CryptoLib.ModPow(g, ca, p);
 
         var k = CryptoLib.GenerateSimpleNumber(p - 1);
-        var r = CryptoLib.Mod(g, k, p);
+        var r = CryptoLib.ModPow(g, k, p);
 
         var cb = CryptoLib.GenerateSimpleNumber(p - 1);
-        var db = CryptoLib.Mod(g, ca, p);
+        var db = CryptoLib.ModPow(g, ca, p);
 
-        var e = m * CryptoLib.Mod(db, k, p) % p;
+        var e = m * CryptoLib.ModPow(db, k, p) % p;
 
-        var m1 = e * CryptoLib.Mod(r, p - 1 - cb, p) % p;
+        var m1 = e * CryptoLib.ModPow(r, p - 1 - cb, p) % p;
 
         Console.WriteLine("{0} {1}", m, m1);
 
@@ -73,7 +71,7 @@ public class Encryption
     }
 
 
-    public class Rsa 
+    public class Rsa
     {
         private readonly long _c;
         public long D { get; }
@@ -88,33 +86,58 @@ public class Encryption
         }
 
 
-        public BigInteger Encrypt(long m, long d,long n)
+        public long Encrypt(long m, long d, long n)
         {
-            return CryptoLib.Mod(m, d, n);
+            return CryptoLib.ModPow(m, d, n);
         }
 
-        public long Decrypt(BigInteger m, long n)
+        public long Decrypt(long m, long n)
         {
-            return (long)CryptoLib.Mod(m, _c, n);
+            return CryptoLib.ModPow(m, _c, n);
         }
 
-        public void Encrypt(string filepath)
+        public void Encrypt(string filepath, long d, long n)
         {
-            throw new NotImplementedException();
+            var buffer = ReadBinaryDataFromFile(filepath);
+
+            var encrypted = new List<long>();
+            foreach (var item in buffer)
+            {
+                encrypted.Add(Encrypt(item, d, n));
+            }
+
+            const string prefix = "RsaEnc_";
+            var encryptedFileName = prefix + Path.GetFileName(filepath);
+            using var binWriter = new BinaryWriter(File.Open(encryptedFileName, FileMode.Create));
+            foreach (long item in encrypted)
+            {
+                binWriter.Write(item);
+            }
+            binWriter.Close();
         }
 
-        public void Decrypt(string filepath)
+        public void Decrypt(string filepath, long n)
         {
-            throw new NotImplementedException();
+            var buffer = ReadBinaryDataFromFile(filepath);
+
+            var decrypted = new List<byte>();
+            for (var i = 0; i < buffer.Length; i += 8)
+            {
+                var value = BitConverter.ToInt64(buffer, i);
+                decrypted.Add(Convert.ToByte(CryptoLib.ModPow(value, _c, n)));
+            }
+
+            var prefix = "RsaDec_";
+            WriteBinaryDataToFile(decrypted.ToArray(), filepath, prefix);
         }
-        
+
         private static List<long> GenerateRsaKeys()
         {
             long n, d, c;
             do
             {
-                long p = CryptoLib.GenerateSimpleNumber(MaxValue);
-                long q = CryptoLib.GenerateSimpleNumber(MaxValue);
+                long p = CryptoLib.GenerateSimpleNumber(Int32.MaxValue);
+                long q = CryptoLib.GenerateSimpleNumber(Int32.MaxValue);
                 n = p * q;
                 long fi = (p - 1) * (q - 1);
                 List<long> gcd;
@@ -130,7 +153,6 @@ public class Encryption
             return new List<long>() { c, d, n };
         }
     }
-
 
     public class Xor : IEncryptable
     {
@@ -148,36 +170,46 @@ public class Encryption
 
         public void Encrypt(string filepath)
         {
-            if (!File.Exists(filepath))
-            {
-                throw new FileNotFoundException();
-            }
-
-            using var fileStream = new FileStream(filepath, FileMode.Open);
-            var buffer = new byte[fileStream.Length];
-
-            if (fileStream.Read(buffer) != fileStream.Length)
-            {
-                throw new FileLoadException();
-            }
-
-            fileStream.Close();
-
+            var buffer = ReadBinaryDataFromFile(filepath);
             for (var i = 0; i < buffer.Length; i++)
             {
                 buffer[i] ^= (byte)_code;
             }
 
-            var encryptedFileName = "XorEnc_" + Path.GetFileName(fileStream.Name);
-            using var binWriter = new BinaryWriter(File.Open(encryptedFileName, FileMode.Create));
-
-            binWriter.Write(buffer);
-            binWriter.Close();
+            var prefix = "XorEnc_";
+            WriteBinaryDataToFile(buffer, filepath, prefix);
         }
 
         public void Decrypt(string filepath)
         {
             Encrypt(filepath);
         }
+    }
+
+    private static byte[] ReadBinaryDataFromFile(string filepath)
+    {
+        if (!File.Exists(filepath))
+        {
+            throw new FileNotFoundException();
+        }
+
+        using var fileStream = new FileStream(filepath, FileMode.Open);
+        var buffer = new byte[fileStream.Length];
+
+        if (fileStream.Read(buffer) != fileStream.Length)
+        {
+            throw new FileLoadException();
+        }
+
+        fileStream.Close();
+        return buffer;
+    }
+
+    private static void WriteBinaryDataToFile(byte[] data, string filepath, string prefix)
+    {
+        var encryptedFileName = prefix + Path.GetFileName(filepath);
+        using var binWriter = new BinaryWriter(File.Open(encryptedFileName, FileMode.Create));
+        binWriter.Write(data);
+        binWriter.Close();
     }
 }

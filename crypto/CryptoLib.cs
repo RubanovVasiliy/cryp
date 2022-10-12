@@ -7,7 +7,7 @@ namespace crypto
     {
         private const int N = 1000000000;
 
-        public static long Mod(long a, long x, long p)
+        public static long ModPow(long a, long x, long p)
         {
             if (x == 0) return 1;
             if (p <= 0) throw new Exception("P can not be <= 0");
@@ -60,7 +60,7 @@ namespace crypto
 
             for (var i = 0; i < k; i++)
             {
-                var temp = (Mod(a, i, p) * y % p) % p;
+                var temp = (ModPow(a, i, p) * y % p) % p;
                 if (map.ContainsKey(temp))
                 {
                     map.TryGetValue(temp, out var item);
@@ -76,7 +76,7 @@ namespace crypto
 
             for (var i = 1; i <= k; i++)
             {
-                var temp = Mod(a, k * i, p);
+                var temp = ModPow(a, k * i, p);
 
                 if (map.TryGetValue(temp, out var item))
                 {
@@ -152,16 +152,16 @@ namespace crypto
             do
             {
                 g = GenerateSimpleNumber(N);
-            } while (p - 1 > g && Mod(g, q, p) != 1);
+            } while (p - 1 > g && ModPow(g, q, p) != 1);
 
             var Xa = GenerateSimpleNumber(N);
             var Xb = GenerateSimpleNumber(N);
 
-            var Ya = Mod(g, Xa, p);
-            var Yb = Mod(g, Xb, p);
+            var Ya = ModPow(g, Xa, p);
+            var Yb = ModPow(g, Xb, p);
 
-            var Zab = Mod(Yb, Xa, p);
-            var Zba = Mod(Ya, Xb, p);
+            var Zab = ModPow(Yb, Xa, p);
+            var Zba = ModPow(Ya, Xb, p);
 
             Console.WriteLine("P = {0}\nQ = {1}\nG = {2}", p, q, g);
             Console.WriteLine("Xa = {0}\nXb = {1}", Xa, Xb);

@@ -15,7 +15,7 @@ public class ShanksTests
         var res = CryptoLib.Shanks(a, p, y);
         foreach (var i in res)
         {
-            var actual = CryptoLib.Mod(a, i, p);
+            var actual = CryptoLib.ModPow(a, i, p);
             Assert.Equal(y, actual);
         }
     }
@@ -34,7 +34,7 @@ public class ShanksTests
             var res = CryptoLib.Shanks(a, p, y);
             foreach (var i in res)
             {
-                var actual = CryptoLib.Mod(a, i, p);
+                var actual = CryptoLib.ModPow(a, i, p);
                 Assert.Equal(y, actual);
             }
         }
