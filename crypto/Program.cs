@@ -16,7 +16,6 @@ using crypto;
 //     Console.WriteLine("x = {2} {0} == {1}", y, CryptoLib.Mod(a, i, p), i);
 // }
 
-//CryptoLib.Shamir(83862086);
-    //CryptoLib.ElGamal(10);
-
-Console.WriteLine(Encryption.RSA(6));
+//Console.WriteLine(Encryption.Shamir(83862086));
+Console.WriteLine(Encryption.ElGamal(10));
+//Console.WriteLine(Encryption.RSA(6));

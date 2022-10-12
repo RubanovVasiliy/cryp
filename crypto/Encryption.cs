@@ -45,7 +45,7 @@ public class Encryption
 
     public static bool ElGamal(long m)
     {
-        var n = 100;
+        var n = 1000000;
         var p = CryptoLib.GenerateSimpleNumber(n, true);
         var q = (p - 1) / 2;
         long g;
@@ -56,12 +56,14 @@ public class Encryption
 
         var ca = CryptoLib.GenerateSimpleNumber(p - 1);
         var da = CryptoLib.Mod(g, ca, p);
+        
         var k = CryptoLib.GenerateSimpleNumber(p - 1);
         var r = CryptoLib.Mod(g, k, p);
-        var e = m * CryptoLib.Mod(da, k, p) % p;
 
         var cb = CryptoLib.GenerateSimpleNumber(p - 1);
         var db = CryptoLib.Mod(g, ca, p);
+        
+        var e = m * CryptoLib.Mod(db, k, p) % p;
 
         var m1 = e * CryptoLib.Mod(r, p - 1 - cb, p) % p;
 
@@ -72,34 +74,34 @@ public class Encryption
 
     public static bool RSA(long m)
     {
-        var aRsaKeys = GenerateRSAKeys();
+        //var aRsaKeys = GenerateRSAKeys();
         var bRsaKeys = GenerateRSAKeys();
 
         var e = CryptoLib.Mod(m, bRsaKeys[1], bRsaKeys[2]);
         var m1 = CryptoLib.Mod(e, bRsaKeys[0], bRsaKeys[2]);
-
-        return e == m1;
+        
+        return m == m1;
     }
 
     private static List<long> GenerateRSAKeys()
     {
-        long p = CryptoLib.GenerateSimpleNumber(N);
-        long q = CryptoLib.GenerateSimpleNumber(N);
-        var n = p * q;
-        var fi = (p - 1) * (q - 1);
-        long d;
-        List<long> gcd;
+        long n, d, c;
         do
         {
-            d = new Random().NextInt64(N);
-            gcd = CryptoLib.Gcd(fi, d);
-        } while (gcd[0] != 1);
+            long p = CryptoLib.GenerateSimpleNumber(N);
+            long q = CryptoLib.GenerateSimpleNumber(N);
+            n = p * q;
+            long fi = (p - 1) * (q - 1);
+            List<long> gcd;
+            do
+            {
+                d = new Random().NextInt64(N);
+                gcd = CryptoLib.Gcd(fi, d);
+            } while (gcd[0] != 1 || d >= fi);
 
-        var c = gcd[2];
+            c = gcd[2];
+        } while (c < 1);
 
-        BigInteger res = c * d % fi;
-        Console.WriteLine("{0} {1}", res, c * d % fi);
-
-        return new List<long>() { c, n, d };
+        return new List<long>() { c, d, n };
     }
 }

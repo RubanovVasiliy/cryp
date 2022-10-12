@@ -7,7 +7,7 @@ namespace crypto
     {
         private const int N = 1000000000;
 
-        public static long Mod(long a, long x, long p)
+        public static BigInteger Mod(BigInteger a, long x, BigInteger p)
         {
             if (x == 0) return 1;
             if (p <= 0) throw new Exception("P can not be <= 0");
@@ -15,7 +15,7 @@ namespace crypto
 
             var t = Convert.ToInt16(Math.Log(x) / Math.Log(2));
             var num = x;
-            Int64 result = 1;
+            BigInteger result = 1;
             var temp = a;
 
             for (var i = 0; i <= t; i++)
@@ -55,7 +55,7 @@ namespace crypto
         {
             if (p == 0) throw new Exception("P can not be 0");
             var k = Convert.ToInt64(Math.Sqrt(p));
-            var map = new Dictionary<long, List<long>>();
+            var map = new Dictionary<BigInteger, List<long>>();
             var keysX = new List<long>();
 
             for (var i = 0; i < k; i++)
