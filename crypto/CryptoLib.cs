@@ -7,7 +7,7 @@ namespace crypto
     {
         private const int N = 1000000000;
 
-        public static BigInteger Mod(BigInteger a, long x, BigInteger p)
+        public static long Mod(long a, long x, long p)
         {
             if (x == 0) return 1;
             if (p <= 0) throw new Exception("P can not be <= 0");
@@ -16,7 +16,7 @@ namespace crypto
             var t = Convert.ToInt16(Math.Log(x) / Math.Log(2));
             var num = x;
             BigInteger result = 1;
-            var temp = a;
+            BigInteger temp = a;
 
             for (var i = 0; i <= t; i++)
             {
@@ -26,7 +26,7 @@ namespace crypto
                 num = num >> 1;
             }
 
-            return result;
+            return (long)result;
         }
 
         public static List<long> Gcd(long a, long b)
