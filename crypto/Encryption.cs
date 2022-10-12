@@ -4,43 +4,6 @@ public class Encryption
 {
     private const int MaxValue = 1000000000;
 
-    private static List<long> GenerateShamirKeys(int p)
-    {
-        var rnd = new Random();
-        int c;
-        List<long> gcd;
-        do
-        {
-            c = rnd.Next(p - 1);
-            gcd = CryptoLib.Gcd(p - 1, c);
-        } while (!CryptoLib.IsSimple(c) && gcd[0] != 1);
-
-        var d = gcd[2];
-        if (d < 0)
-        {
-            d += p - 1;
-        }
-
-        return new List<long>() { c, d };
-    }
-
-    public static bool Shamir(long m)
-    {
-        var p = CryptoLib.GenerateSimpleNumber(MaxValue);
-        var aShamirKeys = GenerateShamirKeys(p);
-        var bShamirKeys = GenerateShamirKeys(p);
-
-
-        var x1 = CryptoLib.ModPow(m, aShamirKeys[0], p);
-        var x2 = CryptoLib.ModPow(x1, bShamirKeys[0], p);
-        var x3 = CryptoLib.ModPow(x2, aShamirKeys[1], p);
-        var x4 = CryptoLib.ModPow(x3, bShamirKeys[1], p);
-
-        Console.WriteLine("{0} {1}", m, x4);
-
-        return m == x4;
-    }
-
     public static bool ElGamal(long m)
     {
         var n = 1000000;
@@ -70,13 +33,96 @@ public class Encryption
         return m == m1;
     }
 
+    public class Shamir : IEncryptable
+    {
+        public Shamir(int p)
+        {
+            var shamirKeys = GenerateShamirKeys(p);
+            P = p;
+            _c = shamirKeys[0];
+            _d = shamirKeys[1];
+        }
+        public int P { get; }
+        private readonly long _c;
+        private readonly long _d;
+        
+        public long Encrypt(long m)
+        {
+            return CryptoLib.ModPow(m, _c, P);
+        }
+
+        public long Decrypt(long m)
+        {
+            return  CryptoLib.ModPow(m, _d, P);
+        }
+
+        public void Encrypt(string filepath)
+        {
+            var buffer = ReadBinaryDataFromFile(filepath);
+
+            var encrypted = new List<long>();
+            for (var i = 0; i < buffer.Length; i += 8)
+            {
+                var value = BitConverter.ToInt64(buffer, i);
+                encrypted.Add(Encrypt(value));
+            }
+
+            const string prefix = "ShamirEnc_";
+            var encryptedFileName = prefix + Path.GetFileName(filepath);
+            using var binWriter = new BinaryWriter(File.Open(encryptedFileName, FileMode.Create));
+            foreach (long item in encrypted)
+            {
+                binWriter.Write(item);
+            }
+            
+            binWriter.Close();
+        }
+
+        public void Decrypt(string filepath)
+        {
+            var buffer = ReadBinaryDataFromFile(filepath);
+
+            var decrypted = new List<long>();
+            for (var i = 0; i < buffer.Length; i += 8)
+            {
+                var value = BitConverter.ToInt64(buffer, i);
+                decrypted.Add(Decrypt(value));
+            }
+
+            const string prefix = "ShamirDec_";
+            var encryptedFileName = prefix + Path.GetFileName(filepath);
+            using var binWriter = new BinaryWriter(File.Open(encryptedFileName, FileMode.Create));
+            foreach (long item in decrypted)
+            {
+                binWriter.Write(item);
+            }
+            
+            binWriter.Close();
+      
+        }
+        private static List<long> GenerateShamirKeys(int p)
+        {
+            var rnd = new Random();
+            int c;
+            List<long> gcd;
+            do
+            {
+                c = rnd.Next(p - 1);
+                gcd = CryptoLib.Gcd(p - 1, c);
+            } while (!CryptoLib.IsSimple(c) && gcd[0] != 1);
+
+            var d = gcd[2];
+            if (d < 0)
+            {
+                d += p - 1;
+            }
+
+            return new List<long>() { c, d };
+        }
+    }
 
     public class Rsa
     {
-        private readonly long _c;
-        public long D { get; }
-        public long N { get; }
-
         public Rsa()
         {
             var rsaKeys = GenerateRsaKeys();
@@ -84,7 +130,10 @@ public class Encryption
             D = rsaKeys[1];
             N = rsaKeys[2];
         }
-
+        
+        private readonly long _c;
+        public long D { get; }
+        public long N { get; }
 
         public long Encrypt(long m, long d, long n)
         {
@@ -113,6 +162,7 @@ public class Encryption
             {
                 binWriter.Write(item);
             }
+
             binWriter.Close();
         }
 
@@ -127,7 +177,7 @@ public class Encryption
                 decrypted.Add(Convert.ToByte(CryptoLib.ModPow(value, _c, n)));
             }
 
-            var prefix = "RsaDec_";
+            const string prefix = "RsaDec_";
             WriteBinaryDataToFile(decrypted.ToArray(), filepath, prefix);
         }
 
