@@ -4,7 +4,7 @@ namespace crypto;
 
 public class Encryption
 {
-    private const int N = 1000000000;
+    private const int MaxValue = 1000000000;
 
     private static List<long> GenerateShamirKeys(int p)
     {
@@ -28,7 +28,7 @@ public class Encryption
 
     public static bool Shamir(long m)
     {
-        var p = CryptoLib.GenerateSimpleNumber(N);
+        var p = CryptoLib.GenerateSimpleNumber(MaxValue);
         var aShamirKeys = GenerateShamirKeys(p);
         var bShamirKeys = GenerateShamirKeys(p);
 
@@ -56,13 +56,13 @@ public class Encryption
 
         var ca = CryptoLib.GenerateSimpleNumber(p - 1);
         var da = CryptoLib.Mod(g, ca, p);
-        
+
         var k = CryptoLib.GenerateSimpleNumber(p - 1);
         var r = CryptoLib.Mod(g, k, p);
 
         var cb = CryptoLib.GenerateSimpleNumber(p - 1);
         var db = CryptoLib.Mod(g, ca, p);
-        
+
         var e = m * CryptoLib.Mod(db, k, p) % p;
 
         var m1 = e * CryptoLib.Mod(r, p - 1 - cb, p) % p;
@@ -72,40 +72,67 @@ public class Encryption
         return m == m1;
     }
 
-    public static bool RSA(long m)
-    {
-        //var aRsaKeys = GenerateRSAKeys();
-        var bRsaKeys = GenerateRSAKeys();
 
-        var e = CryptoLib.Mod(m, bRsaKeys[1], bRsaKeys[2]);
-        var m1 = CryptoLib.Mod(e, bRsaKeys[0], bRsaKeys[2]);
-        
-        return m == m1;
-    }
-
-    private static List<long> GenerateRSAKeys()
+    public class Rsa 
     {
-        long n, d, c;
-        do
+        private readonly long _c;
+        public long D { get; }
+        public long N { get; }
+
+        public Rsa()
         {
-            long p = CryptoLib.GenerateSimpleNumber(N);
-            long q = CryptoLib.GenerateSimpleNumber(N);
-            n = p * q;
-            long fi = (p - 1) * (q - 1);
-            List<long> gcd;
+            var rsaKeys = GenerateRsaKeys();
+            _c = rsaKeys[0];
+            D = rsaKeys[1];
+            N = rsaKeys[2];
+        }
+
+
+        public BigInteger Encrypt(long m, long d,long n)
+        {
+            return CryptoLib.Mod(m, d, n);
+        }
+
+        public long Decrypt(BigInteger m, long n)
+        {
+            return (long)CryptoLib.Mod(m, _c, n);
+        }
+
+        public void Encrypt(string filepath)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Decrypt(string filepath)
+        {
+            throw new NotImplementedException();
+        }
+        
+        private static List<long> GenerateRsaKeys()
+        {
+            long n, d, c;
             do
             {
-                d = new Random().NextInt64(N);
-                gcd = CryptoLib.Gcd(fi, d);
-            } while (gcd[0] != 1 || d >= fi);
+                long p = CryptoLib.GenerateSimpleNumber(MaxValue);
+                long q = CryptoLib.GenerateSimpleNumber(MaxValue);
+                n = p * q;
+                long fi = (p - 1) * (q - 1);
+                List<long> gcd;
+                do
+                {
+                    d = new Random().NextInt64(MaxValue);
+                    gcd = CryptoLib.Gcd(fi, d);
+                } while (gcd[0] != 1 || d >= fi);
 
-            c = gcd[2];
-        } while (c < 1);
+                c = gcd[2];
+            } while (c < 1);
 
-        return new List<long>() { c, d, n };
+            return new List<long>() { c, d, n };
+        }
     }
 
-    public class Xor: IEncryptable
+
+    public class Xor : IEncryptable
     {
         private readonly int _code = new Random().Next(255);
 
@@ -135,7 +162,7 @@ public class Encryption
             }
 
             fileStream.Close();
-            
+
             for (var i = 0; i < buffer.Length; i++)
             {
                 buffer[i] ^= (byte)_code;
@@ -143,10 +170,11 @@ public class Encryption
 
             var encryptedFileName = "XorEnc_" + Path.GetFileName(fileStream.Name);
             using var binWriter = new BinaryWriter(File.Open(encryptedFileName, FileMode.Create));
-            
+
             binWriter.Write(buffer);
             binWriter.Close();
         }
+
         public void Decrypt(string filepath)
         {
             Encrypt(filepath);
