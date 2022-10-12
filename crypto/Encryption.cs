@@ -104,4 +104,52 @@ public class Encryption
 
         return new List<long>() { c, d, n };
     }
+
+    public class Xor: IEncryptable
+    {
+        private readonly int _code = new Random().Next(255);
+
+        public long Encrypt(long m)
+        {
+            return m ^ _code;
+        }
+
+        public long Decrypt(long m)
+        {
+            return m ^ _code;
+        }
+
+        public void Encrypt(string filepath)
+        {
+            if (!File.Exists(filepath))
+            {
+                throw new FileNotFoundException();
+            }
+
+            using var fileStream = new FileStream(filepath, FileMode.Open);
+            var buffer = new byte[fileStream.Length];
+
+            if (fileStream.Read(buffer) != fileStream.Length)
+            {
+                throw new FileLoadException();
+            }
+
+            fileStream.Close();
+            
+            for (var i = 0; i < buffer.Length; i++)
+            {
+                buffer[i] ^= (byte)_code;
+            }
+
+            var encryptedFileName = "XorEnc_" + Path.GetFileName(fileStream.Name);
+            using var binWriter = new BinaryWriter(File.Open(encryptedFileName, FileMode.Create));
+            
+            binWriter.Write(buffer);
+            binWriter.Close();
+        }
+        public void Decrypt(string filepath)
+        {
+            Encrypt(filepath);
+        }
+    }
 }
