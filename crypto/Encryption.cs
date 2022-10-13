@@ -18,11 +18,12 @@ public class Encryption
         var ca = CryptoLib.GenerateSimpleNumber(p - 1);
         var da = CryptoLib.ModPow(g, ca, p);
 
+        var cb = CryptoLib.GenerateSimpleNumber(p - 1);
+        var db = CryptoLib.ModPow(g, cb, p);
+
         var k = CryptoLib.GenerateSimpleNumber(p - 1);
         var r = CryptoLib.ModPow(g, k, p);
 
-        var cb = CryptoLib.GenerateSimpleNumber(p - 1);
-        var db = CryptoLib.ModPow(g, cb, p);
 
         var e = m * CryptoLib.ModPow(db, k, p) % p;
 
@@ -31,6 +32,80 @@ public class Encryption
         Console.WriteLine("{0} {1}", m, m1);
 
         return m == m1;
+    }
+
+    public class ElGamal
+    {
+        public ElGamal()
+        {
+            var n = 100000000;
+            P = CryptoLib.GenerateSimpleNumber(n, true);
+            Q = (P - 1) / 2;
+            do
+            {
+                G = CryptoLib.GenerateSimpleNumber(P - 1);
+            } while (CryptoLib.ModPow(G, Q, P) != 1);
+
+            CA = CryptoLib.GenerateSimpleNumber(P - 1);
+            DA = CryptoLib.ModPow(G, CA, P);
+
+            CB = CryptoLib.GenerateSimpleNumber(P - 1);
+            DB = CryptoLib.ModPow(G, CB, P);
+        }
+
+        public int P { get; }
+        public int Q { get; }
+        public int G { get; }
+        public int CA { get; }
+        public long DA { get; }
+        public int CB { get; }
+        public long DB { get; }
+
+        const string KeysFilePath = "keys.bin";
+
+
+        public void Encrypt(string filepath)
+        {
+            var buffer = ReadBinaryDataFromFile(filepath);
+
+            var encrypted = new List<long>();
+            var keys = new List<long>();
+            var decrypted = new List<byte>();
+            foreach (var item in buffer)
+            {
+                var k = CryptoLib.GenerateSimpleNumber(P - 1);
+                var r = CryptoLib.ModPow(G, k, P);
+                var e = item * CryptoLib.ModPow(DB, k, P) % P;
+                encrypted.Add(e);
+                keys.Add(r);
+                var res=  item * CryptoLib.ModPow(r, P - 1 - CB, P) % P;
+                decrypted.Add(res);
+            }
+
+            const string prefix = "ElGamalEnc_";
+            WriteLongToBinDataToFile(encrypted, filepath, prefix);
+            WriteLongToBinDataToFile(encrypted, KeysFilePath);
+
+        }
+
+        public void Decrypt(string filepath)
+        {
+            var encryptedData = ReadBinaryDataFromFile(filepath);
+            var keysData = ReadBinaryDataFromFile(KeysFilePath);
+
+            var decrypted = new List<byte>();
+            for (var i = 0; i < encryptedData.Length; i += 8)
+            {
+                var value = BitConverter.ToInt64(encryptedData, i);
+                var key = BitConverter.ToInt64(keysData, i);
+                var decryptedMessage = value * CryptoLib.ModPow(key, P - 1 - CB, P) % P;
+                Console.WriteLine(decryptedMessage);
+                decrypted.Add(Convert.ToByte(decryptedMessage));
+            }
+
+            const string prefix = "ElGamalDec_";
+            WriteBinaryDataToFile(decrypted.ToArray(), filepath, prefix);
+        }
     }
 
     public class Shamir
@@ -42,11 +117,12 @@ public class Encryption
             C = shamirKeys[0];
             D = shamirKeys[1];
         }
+
         public int P { get; }
         public long D { get; }
         public long C { get; }
-        
-        
+
+
         public long Encrypt(long m)
         {
             return CryptoLib.ModPow(m, C, P);
@@ -54,10 +130,10 @@ public class Encryption
 
         public long Decrypt(long m)
         {
-            return  CryptoLib.ModPow(m, D, P);
+            return CryptoLib.ModPow(m, D, P);
         }
 
-        public void Encrypt(string filepath, long c,long d)
+        public void Encrypt(string filepath, long c)
         {
             var buffer = ReadBinaryDataFromFile(filepath);
 
@@ -80,7 +156,7 @@ public class Encryption
             binWriter.Close();
         }
 
-        public void Decrypt(string filepath, long c,long d)
+        public void Decrypt(string filepath, long d)
         {
             var buffer = ReadBinaryDataFromFile(filepath);
 
@@ -89,14 +165,15 @@ public class Encryption
             {
                 var value = BitConverter.ToInt64(buffer, i);
                 var x3 = CryptoLib.ModPow(value, D, P);
-                var x4 = CryptoLib.ModPow(x3,d, P);
+                var x4 = CryptoLib.ModPow(x3, d, P);
                 decrypted.Add(Convert.ToByte(x4));
             }
 
             const string prefix = "ShamirDec_";
             WriteBinaryDataToFile(decrypted.ToArray(), filepath, prefix);
-      
+
         }
+
         private static List<long> GenerateShamirKeys(int p)
         {
             var rnd = new Random();
@@ -127,7 +204,7 @@ public class Encryption
             D = rsaKeys[1];
             N = rsaKeys[2];
         }
-        
+
         private readonly long _c;
         public long D { get; }
         public long N { get; }
@@ -257,6 +334,18 @@ public class Encryption
         var encryptedFileName = prefix + Path.GetFileName(filepath);
         using var binWriter = new BinaryWriter(File.Open(encryptedFileName, FileMode.Create));
         binWriter.Write(data);
+        binWriter.Close();
+    }
+
+    private static void WriteLongToBinDataToFile(List<long> data, string filepath, string prefix = "")
+    {
+        var encryptedFileName = prefix + Path.GetFileName(filepath);
+        using var binWriter = new BinaryWriter(File.Open(encryptedFileName, FileMode.Create));
+        foreach (var item in data)
+        {
+            binWriter.Write(item);
+        }
+
         binWriter.Close();
     }
 }

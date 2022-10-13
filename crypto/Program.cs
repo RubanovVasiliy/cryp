@@ -2,7 +2,7 @@
 
 using crypto;
 
-Console.WriteLine(Encryption.ElGamal(234234));
+//Console.WriteLine(Encryption.ElGamal(234234));
 
 
 
@@ -21,3 +21,7 @@ Console.WriteLine(Encryption.ElGamal(234234));
 //var encryptorShamilB = new Encryption.Shamir(encryptorShamilA.P);
 //encryptorShamilA.Encrypt("t.jpg",encryptorShamilB.C,encryptorShamilB.D);
 //encryptorShamilB.Decrypt("ShamirEnc_t.jpg",encryptorShamilA.C,encryptorShamilA.D);
+
+var el = new Encryption.ElGamal();
+el.Encrypt("t.jpg");
+el.Decrypt("ElGamalEnc_t.jpg");
