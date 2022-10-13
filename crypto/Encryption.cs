@@ -33,38 +33,40 @@ public class Encryption
         return m == m1;
     }
 
-    public class Shamir : IEncryptable
+    public class Shamir
     {
         public Shamir(int p)
         {
             var shamirKeys = GenerateShamirKeys(p);
             P = p;
-            _c = shamirKeys[0];
-            _d = shamirKeys[1];
+            C = shamirKeys[0];
+            D = shamirKeys[1];
         }
         public int P { get; }
-        private readonly long _c;
-        private readonly long _d;
+        public long D { get; }
+        public long C { get; }
+        
         
         public long Encrypt(long m)
         {
-            return CryptoLib.ModPow(m, _c, P);
+            return CryptoLib.ModPow(m, C, P);
         }
 
         public long Decrypt(long m)
         {
-            return  CryptoLib.ModPow(m, _d, P);
+            return  CryptoLib.ModPow(m, D, P);
         }
 
-        public void Encrypt(string filepath)
+        public void Encrypt(string filepath, long c,long d)
         {
             var buffer = ReadBinaryDataFromFile(filepath);
 
             var encrypted = new List<long>();
-            for (var i = 0; i < buffer.Length; i += 8)
+            foreach (var item in buffer)
             {
-                var value = BitConverter.ToInt64(buffer, i);
-                encrypted.Add(Encrypt(value));
+                var x1 = CryptoLib.ModPow(item, C, P);
+                var x2 = CryptoLib.ModPow(x1, c, P);
+                encrypted.Add(x2);
             }
 
             const string prefix = "ShamirEnc_";
@@ -74,30 +76,25 @@ public class Encryption
             {
                 binWriter.Write(item);
             }
-            
+
             binWriter.Close();
         }
 
-        public void Decrypt(string filepath)
+        public void Decrypt(string filepath, long c,long d)
         {
             var buffer = ReadBinaryDataFromFile(filepath);
 
-            var decrypted = new List<long>();
+            var decrypted = new List<byte>();
             for (var i = 0; i < buffer.Length; i += 8)
             {
                 var value = BitConverter.ToInt64(buffer, i);
-                decrypted.Add(Decrypt(value));
+                var x3 = CryptoLib.ModPow(value, D, P);
+                var x4 = CryptoLib.ModPow(x3,d, P);
+                decrypted.Add(Convert.ToByte(x4));
             }
 
             const string prefix = "ShamirDec_";
-            var encryptedFileName = prefix + Path.GetFileName(filepath);
-            using var binWriter = new BinaryWriter(File.Open(encryptedFileName, FileMode.Create));
-            foreach (long item in decrypted)
-            {
-                binWriter.Write(item);
-            }
-            
-            binWriter.Close();
+            WriteBinaryDataToFile(decrypted.ToArray(), filepath, prefix);
       
         }
         private static List<long> GenerateShamirKeys(int p)
