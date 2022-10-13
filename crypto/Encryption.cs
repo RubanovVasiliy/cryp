@@ -4,9 +4,9 @@ public class Encryption
 {
     private const int MaxValue = 1000000000;
 
-    public static bool ElGamal(long m)
+    public static bool ElGamall(long m)
     {
-        var n = 1000000;
+        var n = 100000000;
         var p = CryptoLib.GenerateSimpleNumber(n, true);
         var q = (p - 1) / 2;
         long g;
@@ -22,7 +22,7 @@ public class Encryption
         var r = CryptoLib.ModPow(g, k, p);
 
         var cb = CryptoLib.GenerateSimpleNumber(p - 1);
-        var db = CryptoLib.ModPow(g, ca, p);
+        var db = CryptoLib.ModPow(g, cb, p);
 
         var e = m * CryptoLib.ModPow(db, k, p) % p;
 
