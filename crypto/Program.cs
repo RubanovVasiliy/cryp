@@ -6,22 +6,22 @@ using crypto;
 
 
 
- // var encryptor = new Encryption.Xor();
- // encryptor.Encrypt("t.jpg");
- // encryptor.Decrypt("XorEnc_t.jpg");
+    var encryptor = new Encryption.Xor();
+    encryptor.Encrypt("t.jpg");
+    encryptor.Decrypt("XorEnc_t.jpg");
 
 
-// var encryptorRsaA = new Encryption.Rsa();
-// var encryptorRsaB = new Encryption.Rsa();
-//encryptorRsaA.Encrypt("t.jpg", encryptorRsaB.D, encryptorRsaB.N);
-//encryptorRsaB.Decrypt("RsaEnc_t.jpg",encryptorRsaB.N);
+    var encryptorRsaA = new Encryption.Rsa();
+    var encryptorRsaB = new Encryption.Rsa();
+    encryptorRsaA.Encrypt("t.jpg", encryptorRsaB.D, encryptorRsaB.N);
+    encryptorRsaB.Decrypt("RsaEnc_t.jpg", encryptorRsaB.N);
 
-//var p = CryptoLib.GenerateSimpleNumber(1000000000);
-//var encryptorShamilA = new Encryption.Shamir(p);
-//var encryptorShamilB = new Encryption.Shamir(encryptorShamilA.P);
-//encryptorShamilA.Encrypt("t.jpg",encryptorShamilB.C,encryptorShamilB.D);
-//encryptorShamilB.Decrypt("ShamirEnc_t.jpg",encryptorShamilA.C,encryptorShamilA.D);
+    var p = CryptoLib.GenerateSimpleNumber(1000000000);
+    var encryptorShamilA = new Encryption.Shamir(p);
+    var encryptorShamilB = new Encryption.Shamir(encryptorShamilA.P);
+    encryptorShamilA.Encrypt("t.jpg", encryptorShamilB.C);
+    encryptorShamilB.Decrypt("ShamirEnc_t.jpg", encryptorShamilA.D);
 
-var el = new Encryption.ElGamal();
-el.Encrypt("t.jpg");
-el.Decrypt("ElGamalEnc_t.jpg");
+    var el = new Encryption.ElGamal();
+    el.Encrypt("t.jpg");
+    el.Decrypt("ElGamalEnc_t.jpg");

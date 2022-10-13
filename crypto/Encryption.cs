@@ -4,36 +4,6 @@ public class Encryption
 {
     private const int MaxValue = 1000000000;
 
-    public static bool ElGamall(long m)
-    {
-        var n = 100000000;
-        var p = CryptoLib.GenerateSimpleNumber(n, true);
-        var q = (p - 1) / 2;
-        long g;
-        do
-        {
-            g = CryptoLib.GenerateSimpleNumber(p - 1);
-        } while (CryptoLib.ModPow(g, q, p) != 1);
-
-        var ca = CryptoLib.GenerateSimpleNumber(p - 1);
-        var da = CryptoLib.ModPow(g, ca, p);
-
-        var cb = CryptoLib.GenerateSimpleNumber(p - 1);
-        var db = CryptoLib.ModPow(g, cb, p);
-
-        var k = CryptoLib.GenerateSimpleNumber(p - 1);
-        var r = CryptoLib.ModPow(g, k, p);
-
-
-        var e = m * CryptoLib.ModPow(db, k, p) % p;
-
-        var m1 = e * CryptoLib.ModPow(r, p - 1 - cb, p) % p;
-
-        Console.WriteLine("{0} {1}", m, m1);
-
-        return m == m1;
-    }
-
     public class ElGamal
     {
         public ElGamal()
@@ -70,7 +40,6 @@ public class Encryption
 
             var encrypted = new List<long>();
             var keys = new List<long>();
-            var decrypted = new List<byte>();
             foreach (var item in buffer)
             {
                 var k = CryptoLib.GenerateSimpleNumber(P - 1);
@@ -78,14 +47,11 @@ public class Encryption
                 var e = item * CryptoLib.ModPow(DB, k, P) % P;
                 encrypted.Add(e);
                 keys.Add(r);
-                var res=  item * CryptoLib.ModPow(r, P - 1 - CB, P) % P;
-                decrypted.Add(res);
             }
 
             const string prefix = "ElGamalEnc_";
             WriteLongToBinDataToFile(encrypted, filepath, prefix);
-            WriteLongToBinDataToFile(encrypted, KeysFilePath);
-
+            WriteLongToBinDataToFile(keys, KeysFilePath);
         }
 
         public void Decrypt(string filepath)
@@ -99,7 +65,6 @@ public class Encryption
                 var value = BitConverter.ToInt64(encryptedData, i);
                 var key = BitConverter.ToInt64(keysData, i);
                 var decryptedMessage = value * CryptoLib.ModPow(key, P - 1 - CB, P) % P;
-                Console.WriteLine(decryptedMessage);
                 decrypted.Add(Convert.ToByte(decryptedMessage));
             }
 
