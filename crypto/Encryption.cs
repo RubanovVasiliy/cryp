@@ -1,4 +1,6 @@
-﻿namespace crypto;
+﻿using System.Security.Cryptography;
+
+namespace crypto;
 
 public class Encryption
 {
@@ -240,6 +242,18 @@ public class Encryption
             } while (c < 1);
 
             return new List<long>() { c, d, n };
+        }
+
+        public List<long> EncryptDigitalSignature(string filepath)
+        {
+            var buffer = ReadBinaryDataFromFile(filepath);
+            var sha256 =  SHA256.Create().ComputeHash(buffer);
+            foreach (var item in sha256)        
+            {
+                Console.Write(item);
+            }
+
+            return new List<long>();
         }
     }
 
