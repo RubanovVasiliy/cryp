@@ -1,4 +1,6 @@
-﻿using System.Security.Cryptography;
+﻿using System.Numerics;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace crypto;
 
@@ -227,8 +229,8 @@ public class Encryption
             long n, d, c;
             do
             {
-                long p = CryptoLib.GenerateSimpleNumber(Int32.MaxValue);
-                long q = CryptoLib.GenerateSimpleNumber(Int32.MaxValue);
+                long p = CryptoLib.GenerateSimpleNumber(int.MaxValue);
+                long q = CryptoLib.GenerateSimpleNumber(int.MaxValue);
                 n = p * q;
                 long fi = (p - 1) * (q - 1);
                 List<long> gcd;
@@ -244,16 +246,45 @@ public class Encryption
             return new List<long>() { c, d, n };
         }
 
-        public List<long> EncryptDigitalSignature(string filepath)
+        public void EncryptDigitalSignature(string filepath)
         {
             var buffer = ReadBinaryDataFromFile(filepath);
-            var sha256 =  SHA256.Create().ComputeHash(buffer);
-            foreach (var item in sha256)        
+            var sha512 = SHA512.Create().ComputeHash(buffer);
+
+            var digitalSignature = new List<long>();
+            for (var i = 0; i < sha512.Length; i += 4)
             {
-                Console.Write(item);
+                var value = BitConverter.ToInt32(sha512, i);
+                var s = CryptoLib.ModPow(value, _c, N);
+                digitalSignature.Add(s);
             }
 
-            return new List<long>();
+            const string prefix = "RsaDigitalSignature_";
+            WriteLongToBinDataToFile(digitalSignature, filepath, prefix);
+        }
+
+        public static bool CheckDigitalSignature(string filepath, long d, long n)
+        {
+            const string prefix = "RsaDigitalSignature_";
+            var dSBuffer = ReadBinaryDataFromFile(prefix + filepath);
+            var digitalSignature = new List<long>();
+            for (var i = 0; i < dSBuffer.Length; i += 8)
+            {
+                var value = BitConverter.ToInt64(dSBuffer, i);
+                var s = CryptoLib.ModPow(value, d, n);
+                digitalSignature.Add(s);
+            }
+
+            var buffer = ReadBinaryDataFromFile(filepath);
+            var sha512 = SHA512.Create().ComputeHash(buffer);
+            var hash = new List<long>();
+            for (var i = 0; i < sha512.Length; i += 4)
+            {
+                var value = BitConverter.ToInt32(sha512, i);
+                hash.Add(value);
+            }
+
+            return digitalSignature.SequenceEqual(hash);
         }
     }
 
@@ -316,7 +347,7 @@ public class Encryption
         binWriter.Close();
     }
 
-    private static void WriteLongToBinDataToFile(List<long> data, string filepath, string prefix = "")
+    private static void WriteLongToBinDataToFile (List<long> data, string filepath, string prefix = "")
     {
         var encryptedFileName = prefix + Path.GetFileName(filepath);
         using var binWriter = new BinaryWriter(File.Open(encryptedFileName, FileMode.Create));
