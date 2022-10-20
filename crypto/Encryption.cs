@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace crypto;
 
@@ -12,7 +11,7 @@ public class Encryption
     {
         public ElGamal()
         {
-            var n = 100000000;
+            var n = 1000000000;
             P = CryptoLib.GenerateSimpleNumber(n, true);
             Q = (P - 1) / 2;
             do
@@ -35,7 +34,7 @@ public class Encryption
         public int CB { get; }
         public long DB { get; }
 
-        const string KeysFilePath = "keys.bin";
+        private const string KeysFilePath = "keys.bin";
 
 
         public void Encrypt(string filepath)
@@ -79,7 +78,7 @@ public class Encryption
         public long EncryptDigitalSignature(string filepath)
         {
             var buffer = ReadBinaryDataFromFile(filepath);
-            var sha512 = SHA512.Create().ComputeHash(buffer);
+            var sha512 = SHA256.Create().ComputeHash(buffer);
 
             var x = new Random().NextInt64(P - 1);
             var y = CryptoLib.ModPow(G, x, P);
@@ -90,24 +89,33 @@ public class Encryption
             {
                 k = new Random().NextInt64(P - 1);
                 gcd = CryptoLib.Gcd(P - 1, k);
-            } while (gcd[0] != 1);
+            } while (gcd[0] != 1 || gcd[2] < 0);
 
             var r = CryptoLib.ModPow(G, k, P);
+            var u = (new BigInteger(sha512) - x * r) % (P - 1);
+            var s = (long)(gcd[2] * u % (P - 1));
 
-            var digitalSignature = new List<long> { r };
-            for (var i = 0; i < sha512.Length; i += 4)
-            {
-                var value = BitConverter.ToInt32(sha512, i);
-
-                var u = (value - x * r) % P - 1;
-                var s = gcd[2] * u % P - 1;
-
-                digitalSignature.Add(s);
-            }
-
+            var digitalSignature = new List<long> { r, s };
             const string prefix = "ElGamalDigitalSignature_";
             WriteLongToBinDataToFile(digitalSignature, filepath, prefix);
             return y;
+        }
+
+        public static bool CheckDigitalSignature(string filepath, long y, long p, long g)
+        {
+            var buffer = ReadBinaryDataFromFile(filepath);
+            var sha512 = SHA256.Create().ComputeHash(buffer);
+
+            const string prefix = "ElGamalDigitalSignature_";
+            var dSBuffer = ReadBinaryDataFromFile(prefix + filepath);
+
+            var r = BitConverter.ToInt32(dSBuffer, 0);
+            var s = BitConverter.ToInt32(dSBuffer, 8);
+
+            var res = BigInteger.ModPow(y, r, p) * BigInteger.ModPow(r, s, p) % p;
+            var rs = BigInteger.ModPow(g, new BigInteger(sha512), p);
+
+            return res == rs;
         }
     }
 
@@ -381,7 +389,7 @@ public class Encryption
         binWriter.Close();
     }
 
-    private static void WriteLongToBinDataToFile (List<long> data, string filepath, string prefix = "")
+    private static void WriteLongToBinDataToFile(List<long> data, string filepath, string prefix = "")
     {
         var encryptedFileName = prefix + Path.GetFileName(filepath);
         using var binWriter = new BinaryWriter(File.Open(encryptedFileName, FileMode.Create));
