@@ -53,8 +53,8 @@ public class Encryption
             }
 
             const string prefix = "ElGamalEnc_";
-            WriteLongToBinDataToFile(encrypted, filepath, prefix);
-            WriteLongToBinDataToFile(keys, KeysFilePath);
+            WriteDataToFile(encrypted, filepath, prefix);
+            WriteDataToFile(keys, KeysFilePath);
         }
 
         public void Decrypt(string filepath)
@@ -72,7 +72,7 @@ public class Encryption
             }
 
             const string prefix = "ElGamalDec_";
-            WriteBinaryDataToFile(decrypted.ToArray(), filepath, prefix);
+            WriteDataToFile(decrypted.ToArray(), filepath, prefix);
         }
 
         public long EncryptDigitalSignature(string filepath)
@@ -97,7 +97,7 @@ public class Encryption
 
             var digitalSignature = new List<long> { r, s };
             const string prefix = "ElGamalDigitalSignature_";
-            WriteLongToBinDataToFile(digitalSignature, filepath, prefix);
+            WriteDataToFile(digitalSignature, filepath, prefix);
             return y;
         }
 
@@ -181,7 +181,7 @@ public class Encryption
             }
 
             const string prefix = "ShamirDec_";
-            WriteBinaryDataToFile(decrypted.ToArray(), filepath, prefix);
+            WriteDataToFile(decrypted.ToArray(), filepath, prefix);
 
         }
 
@@ -263,7 +263,7 @@ public class Encryption
             }
 
             const string prefix = "RsaDec_";
-            WriteBinaryDataToFile(decrypted.ToArray(), filepath, prefix);
+            WriteDataToFile(decrypted.ToArray(), filepath, prefix);
         }
 
         private static List<long> GenerateRsaKeys()
@@ -302,7 +302,7 @@ public class Encryption
             }
 
             const string prefix = "RsaDigitalSignature_";
-            WriteLongToBinDataToFile(digitalSignature, filepath, prefix);
+            WriteDataToFile(digitalSignature, filepath, prefix);
         }
 
         public static bool CheckDigitalSignature(string filepath, long d, long n)
@@ -330,7 +330,7 @@ public class Encryption
         }
     }
 
-    public class Xor : IEncryptable
+    public class Xor
     {
         private readonly int _code = new Random().Next(255);
 
@@ -353,7 +353,7 @@ public class Encryption
             }
 
             var prefix = "XorEnc_";
-            WriteBinaryDataToFile(buffer, filepath, prefix);
+            WriteDataToFile(buffer, filepath, prefix);
         }
 
         public void Decrypt(string filepath)
@@ -381,7 +381,7 @@ public class Encryption
         return buffer;
     }
 
-    private static void WriteBinaryDataToFile(byte[] data, string filepath, string prefix)
+    private static void WriteDataToFile(byte[] data, string filepath, string prefix)
     {
         var encryptedFileName = prefix + Path.GetFileName(filepath);
         using var binWriter = new BinaryWriter(File.Open(encryptedFileName, FileMode.Create));
@@ -389,7 +389,7 @@ public class Encryption
         binWriter.Close();
     }
 
-    private static void WriteLongToBinDataToFile(List<long> data, string filepath, string prefix = "")
+    private static void WriteDataToFile(List<long> data, string filepath, string prefix = "")
     {
         var encryptedFileName = prefix + Path.GetFileName(filepath);
         using var binWriter = new BinaryWriter(File.Open(encryptedFileName, FileMode.Create));
