@@ -75,6 +75,40 @@ public class Encryption
             const string prefix = "ElGamalDec_";
             WriteBinaryDataToFile(decrypted.ToArray(), filepath, prefix);
         }
+
+        public long EncryptDigitalSignature(string filepath)
+        {
+            var buffer = ReadBinaryDataFromFile(filepath);
+            var sha512 = SHA512.Create().ComputeHash(buffer);
+
+            var x = new Random().NextInt64(P - 1);
+            var y = CryptoLib.ModPow(G, x, P);
+
+            long k;
+            List<long> gcd;
+            do
+            {
+                k = new Random().NextInt64(P - 1);
+                gcd = CryptoLib.Gcd(P - 1, k);
+            } while (gcd[0] != 1);
+
+            var r = CryptoLib.ModPow(G, k, P);
+
+            var digitalSignature = new List<long> { r };
+            for (var i = 0; i < sha512.Length; i += 4)
+            {
+                var value = BitConverter.ToInt32(sha512, i);
+
+                var u = (value - x * r) % P - 1;
+                var s = gcd[2] * u % P - 1;
+
+                digitalSignature.Add(s);
+            }
+
+            const string prefix = "ElGamalDigitalSignature_";
+            WriteLongToBinDataToFile(digitalSignature, filepath, prefix);
+            return y;
+        }
     }
 
     public class Shamir
