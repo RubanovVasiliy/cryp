@@ -29,6 +29,28 @@ namespace crypto
             return (long)result;
         }
 
+        public static List<BigInteger> Gcd(BigInteger a, BigInteger b)
+        {
+            if (a < b) throw new Exception("In GCD must be a >= b");
+
+            var u = new List<BigInteger> { a, 1, 0 };
+            var v = new List<BigInteger> { b, 0, 1 };
+            var t = new List<BigInteger> { 0, 0, 0 };
+
+            while (v[0] != 0)
+            {
+                var q = u[0] / v[0];
+                t[0] = u[0] % v[0];
+                t[1] = u[1] - q * v[1];
+                t[2] = u[2] - q * v[2];
+
+                u = new List<BigInteger>(v);
+                v = new List<BigInteger>(t);
+            }
+
+            return u;
+        }
+        
         public static List<long> Gcd(long a, long b)
         {
             if (a < b) throw new Exception("In GCD must be a >= b");
@@ -97,9 +119,9 @@ namespace crypto
 
             var b = Convert.ToInt64(Math.Pow(n, 0.5));
 
-            for (int i = 2; i <= b; ++i)
+            for (var i = 2; i <= b; ++i)
             {
-                if ((n % i) == 0) return false;
+                if (n % i == 0) return false;
             }
 
             return true;
@@ -168,6 +190,92 @@ namespace crypto
             Console.WriteLine("Ya = {0}\nYb = {1}", Ya, Yb);
             Console.WriteLine("Zab = {0}\nZab = {1}", Zab, Zba);
             return Zab == Zba;
+        }
+
+        public static class PrimeExtensions
+        {
+            private static readonly ThreadLocal<Random?> SGen = new(() => new Random());
+
+            private static Random? Gen => SGen.Value;
+
+            public static bool IsProbablyPrime(BigInteger value, int witnesses = 10)
+            {
+                if (value <= 1)
+                    return false;
+
+                if (witnesses <= 0)
+                    witnesses = 10;
+
+                var d = value - 1;
+                var s = 0;
+
+                while (d % 2 == 0)
+                {
+                    d /= 2;
+                    s += 1;
+                }
+
+                var bytes = new byte[value.ToByteArray().LongLength];
+                BigInteger a;
+
+                for (var i = 0; i < witnesses; i++)
+                {
+                    do
+                    {
+                        Gen?.NextBytes(bytes);
+
+                        a = new BigInteger(bytes);
+                    } while (a < 2 || a >= value - 2);
+
+                    var x = BigInteger.ModPow(a, d, value);
+                    if (x == 1 || x == value - 1)
+                        continue;
+
+                    for (var r = 1; r < s; r++)
+                    {
+                        x = BigInteger.ModPow(x, 2, value);
+
+                        if (x == 1)
+                            return false;
+                        if (x == value - 1)
+                            break;
+                    }
+
+                    if (x != value - 1)
+                        return false;
+                }
+
+                return true;
+            }
+
+            public static BigInteger RandomIntegerBelow(BigInteger n)
+            {
+                var bytes = n.ToByteArray();
+                BigInteger r;
+
+                do
+                {
+                    new Random().NextBytes(bytes);
+                    bytes[^1] &= 0x7F; 
+                    r = new BigInteger(bytes);
+                } while (r >= n);
+
+                return r;
+            }
+            public static BigInteger RandomIntegerSizeBit(int size)
+            {
+                var bytes = new byte[size / 8];
+                BigInteger r;
+
+                do
+                {
+                    new Random().NextBytes(bytes);
+                    bytes[^1] &= (byte)0x7F; //force sign bit to positive
+                    r = new BigInteger(bytes);
+                } while (r >= BigInteger.Pow(2, size) - 1);
+
+                return r;
+            }
         }
     }
 }

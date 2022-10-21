@@ -194,7 +194,7 @@ public class Encryption
             {
                 c = rnd.Next(p - 1);
                 gcd = CryptoLib.Gcd(p - 1, c);
-            } while (!CryptoLib.IsSimple(c) && gcd[0] != 1);
+            } while (!CryptoLib.IsSimple(c) || gcd[0] != 1);
 
             var d = gcd[2];
             if (d < 0)
@@ -359,6 +359,82 @@ public class Encryption
         public void Decrypt(string filepath)
         {
             Encrypt(filepath);
+        }
+    }
+
+    public class Gost
+    {
+        public static List<BigInteger> EncryptDigitalSignature(string filepath)
+        {
+            BigInteger q, b, p, a;
+            do
+            {
+                q = CryptoLib.PrimeExtensions.RandomIntegerSizeBit(256);
+            } while (!CryptoLib.PrimeExtensions.IsProbablyPrime(q));
+
+            do
+            {
+                b = CryptoLib.PrimeExtensions.RandomIntegerSizeBit(256);
+                p = b * q + 1;
+            } while (!CryptoLib.PrimeExtensions.IsProbablyPrime(p));
+
+            do
+            {
+                a = BigInteger.ModPow(CryptoLib.PrimeExtensions.RandomIntegerBelow(p - 1), b, p);
+            } while (BigInteger.ModPow(a, q, p) != 1);
+
+            var x = CryptoLib.PrimeExtensions.RandomIntegerBelow(q - 1);
+            var y = BigInteger.ModPow(a, x, p);
+
+            var buffer = ReadBinaryDataFromFile(filepath);
+            var hash = MD5.Create().ComputeHash(buffer);
+            var h = new BigInteger(hash);
+
+            BigInteger r, s;
+            do
+            {
+                var k = CryptoLib.PrimeExtensions.RandomIntegerBelow(q - 1);
+                r = BigInteger.ModPow(a, k, p) % q;
+                s = (k * h + x * r) % q;
+            } while (r == 0 || s == 0);
+
+            //var digitalSignature = r.ToByteArray().Concat(s.ToByteArray());
+            //var enumerable = digitalSignature as byte[] ?? digitalSignature.ToArray();
+
+            const string prefix = "GostDigitalSignature_";
+            WriteDataToFile(s.ToByteArray(), filepath, prefix);
+
+            return new List<BigInteger>() { p, q, r, a, y };
+        }
+
+        public static bool CheckDigitalSignature(string filepath, BigInteger p, BigInteger q, BigInteger r,
+            BigInteger a, BigInteger y)
+        {
+            var buffer = ReadBinaryDataFromFile(filepath);
+            var hash = MD5.Create().ComputeHash(buffer);
+
+            const string prefix = "GostDigitalSignature_";
+            var dSBuffer = ReadBinaryDataFromFile(prefix + filepath);
+
+            var s = new BigInteger(dSBuffer);
+
+            if (r >= q || s >= q)
+            {
+                return false;
+            }
+
+            var hInverse = CryptoLib.Gcd(q, new BigInteger(hash))[2];
+
+            var u1 = s * hInverse % q;
+            var u2 = -r * hInverse % q;
+            u2 = u2 < 0 ? q + u2 : u2;
+            u1 = u1 < 0 ? q + u1 : u1;
+            var v = BigInteger.ModPow(a, u1, p) * BigInteger.ModPow(y, u2, p) % q;
+
+            Console.WriteLine(r);
+            Console.WriteLine(v);
+            
+            return v == r;
         }
     }
 
