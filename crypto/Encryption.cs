@@ -429,11 +429,11 @@ public class Encryption
             var u2 = -r * hInverse % q;
             u2 = u2 < 0 ? q + u2 : u2;
             u1 = u1 < 0 ? q + u1 : u1;
-            var v = BigInteger.ModPow(a, u1, p) * BigInteger.ModPow(y, u2, p) % q;
+            var v = BigInteger.ModPow(a, u1, p) * BigInteger.ModPow(y, u2, p) % p % q;
 
             Console.WriteLine(r);
             Console.WriteLine(v);
-            
+
             return v == r;
         }
     }
