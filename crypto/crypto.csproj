@@ -8,11 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Content Include="bin\Debug\net6.0\crypto.pdb" />
+        <Content Include="bin\Debug\net6.0\crypto.pdb"/>
     </ItemGroup>
 
     <ItemGroup>
-      <None Include="bin\Debug\net6.0\t.jpg" />
+        <None Include="bin\Debug\net6.0\t.jpg"/>
     </ItemGroup>
 
 </Project>
