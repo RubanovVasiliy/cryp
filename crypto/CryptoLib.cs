@@ -28,6 +28,20 @@ public class CryptoLib
         return (long)result;
     }
 
+    public static BigInteger ModPow(BigInteger a, BigInteger x, BigInteger p)
+    {
+        BigInteger result = 1;
+        for (; x > 0; a = a * a % p, x >>= 1)
+        {
+            if (Convert.ToBoolean(x & 1))
+            {
+                result = result * a % p;
+            }
+        }
+
+        return result;
+    }
+
     public static List<BigInteger> Gcd(BigInteger a, BigInteger b)
     {
         if (a < b) throw new Exception("In GCD must be a >= b");
@@ -255,7 +269,7 @@ public class CryptoLib
                 bytes[^1] &= 0x7F;
                 r = new BigInteger(bytes);
             } while (r >= n);
-
+            
             return r;
         }
 
