@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "lab4", "lab4\lab4.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "lab5", "lab5\lab5.csproj", "{6709E4C7-27B1-4E2C-82EF-69E5B4935305}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "graph-coloring", "graph-coloring\graph-coloring.csproj", "{B4C20A87-E82C-4EBC-BE3C-F00A3AE4F894}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{6709E4C7-27B1-4E2C-82EF-69E5B4935305}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6709E4C7-27B1-4E2C-82EF-69E5B4935305}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6709E4C7-27B1-4E2C-82EF-69E5B4935305}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4C20A87-E82C-4EBC-BE3C-F00A3AE4F894}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4C20A87-E82C-4EBC-BE3C-F00A3AE4F894}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4C20A87-E82C-4EBC-BE3C-F00A3AE4F894}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4C20A87-E82C-4EBC-BE3C-F00A3AE4F894}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
