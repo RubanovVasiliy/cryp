@@ -35,7 +35,7 @@ public class Node
     public BigInteger CreateZ(string colors)
     {
         var rnd = CryptoLib.PrimeExtensions.RandomIntegerSizeBit(512);
-        var ch = new byte[] { Convert.ToByte(colors.ToCharArray()[Id]) };
+        var ch = new byte[] { Convert.ToByte(colors.ToCharArray()[Id - 1]) };
         R = new BigInteger(rnd.ToByteArray().Concat(ch).ToArray());
         Z = BigInteger.ModPow(R, D, N);
         return Z;
